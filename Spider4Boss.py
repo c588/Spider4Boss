@@ -166,15 +166,10 @@ def rec_spider(page=1):
 
 if __name__ == "__main__":
     # 此处需要填写自己账号的cookie
-    cookie = 'lastCity=101210100; _uab_collina=155391552146954821137608; __c=1554345926; __g=-;' \
-             ' __l=l=%2Fwww.zhipin.com%2F&r=; bannerClose_echo20190329=true; t=KP9jOqLS9hUCPH3h;' \
-             ' wt=KP9jOqLS9hUCPH3h; JSESSIONID="";' \
-             ' Hm_lvt_194df3105ad7148dcf2b98a91b5e727a=1553915521,1553915549,1554345926,1554796342;' \
-             ' __a=41924534.1553741237.1553915521.1554345926.64.3.48.64;' \
-             ' Hm_lpvt_194df3105ad7148dcf2b98a91b5e727a=1554947693'
+    cookie = ''
     url = 'https://www.zhipin.com/c101210100/b_%E6%BB%A8%E6%B1%9F%E5%8C%BA/'
     job = 'PHP'
     # 此处需要填写Excel表的保存路径，以 "/" 结尾
-    path = 'C:/Users/cjy/Desktop/'
+    path = ''
     # rec_spider()
     spider4boss(url, job, cookie, path, 1)
