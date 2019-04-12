@@ -1,10 +1,11 @@
 import requests
 from bs4 import BeautifulSoup
 import time
-# import xlrd
+import xlrd
 import xlwt
 import random
 import datetime
+import os
 
 
 # url:域名+地级市+区/县级市，以 '/' 结尾，例：https://www.zhipin.com/c101210100/b_%E6%BB%A8%E6%B1%9F%E5%8C%BA/
@@ -157,11 +158,40 @@ def rec_spider(page=1):
         rec_spider(res)
     else:  # 爬取完成
         print('爬取完成')
-        quit()
 
 
-def merge_excel(date):
-    pass
+def merge_excel(path, date=str(datetime.date.today())[5:]):
+    # 先读取所有Excel表
+    all_data = list()
+    for i in range(1, 50):  # 默认最多50个Excel文件
+        file_path = path + date + '_' + str(i) + '_boss_job.xls'
+        if os.path.exists(file_path):
+            data = xlrd.open_workbook(file_path)  # 打开Excel
+            table = data.sheet_by_index(0)  # 打开第一个表
+            for j in range(1, table.nrows):
+                all_data.append(table.row_values(j))
+            # 读取完后删除文件
+            os.remove(path + date + '_' + str(i) + '_boss_job.xls')
+        # 路径不存在说明已经遍历完所有当天爬取的Excel文件
+        else:
+            break
+    print(len(all_data))
+    # 将数据输入到总表
+    workbook = xlwt.Workbook(encoding='utf-8')
+    sheet = workbook.add_sheet('job_detail')
+    # 表头写入第一行
+    head = ['职位名', '薪资', '公司名', '地点', '经验', '学历', '公司行业', '融资阶段', '公司人数', '发布人', '发布时间', '实际经验要求', '岗位网址', 'JD ']
+    for h in range(len(head)):
+        sheet.write(0, h, head[h])
+    row = 1
+    # 写入职位数据
+    for i in range(len(all_data)):
+        for j in range(len(head)):
+            sheet.write(row, j, all_data[i][j])
+            row += 1
+    # 保存Excel
+    workbook.save(path + date + '_boss_job.xls')
+    print('合并excel成功')
 
 
 if __name__ == "__main__":
@@ -169,6 +199,5 @@ if __name__ == "__main__":
     url = 'https://www.zhipin.com/c101210100/b_%E6%BB%A8%E6%B1%9F%E5%8C%BA/'
     job = 'PHP'
     path = ''
-    # spider4boss(url, job, cookie, path, 1)
-    # verify_slider()
     rec_spider()
+    merge_excel(path)
