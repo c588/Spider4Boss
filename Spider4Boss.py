@@ -188,7 +188,7 @@ def merge_excel(path, date=str(datetime.date.today())[5:]):
     for i in range(len(all_data)):
         for j in range(len(head)):
             sheet.write(row, j, all_data[i][j])
-            row += 1
+        row += 1
     # 保存Excel
     workbook.save(path + date + '_boss_job.xls')
     print('合并excel成功')
