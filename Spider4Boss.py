@@ -27,12 +27,15 @@ def spider4boss(url, job, cookie, path, page_start):
     row = 1  # 第0行用来写表头
     # 判断程序是否结束的标志位
     is_end = 0
+    # 当前时间
+    now_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
     for page in range(page_start, page_start+3):  # boss每个ip一次只能爬3页
         # 一级url  c101210100：杭州市代号 b_%E6%BB%A8%E6%B1%9F%E5%8C%BA：滨江区转码
         main_url = url + "?query=" + job + "&page=" + str(page) + "&ka=page-" + str(page)
         print('第' + str(page) + '页  ' + main_url)
-        hud = ['职位名', '薪资', '公司名', '地点', '经验', '学历', '公司行业', '融资阶段', '公司人数', '发布人', '发布时间', '实际经验要求', '岗位网址', 'JD']
+        hud = ['职位名', '薪资', '公司名', '地点', '经验', '学历', '公司行业', '融资阶段', '公司人数', '发布人',
+               '发布时间', '实际经验要求', '岗位网址', 'JD', '详细地址']
         print('\t'.join(hud))
         # 请求对象
         html = requests.get(main_url, headers=headers)
@@ -54,20 +57,48 @@ def spider4boss(url, job, cookie, path, page_start):
             res = []
             pass  # 不写pass上面行会出warning，强迫症必须消除
             res.append(n.find('div', 'job-title').string)  # 添加职位名
-            res.append(n.find('span', 'red').string)  # 添加薪资
+            salary = n.find('span', 'red').string
+            pot = salary.find('k-')
+            res.append(n.find('span', 'red').string[0:pot])  # 添加薪资
             res.append(n.find('div', 'company-text').find('a').string)  # 添加公司名
             require = n.find('div', 'info-primary').find('p').contents
             res.append(require[0])  # 添加地区
-            res.append(require[2])  # 添加经验
-            res.append(require[4])  # 添加学历
+            if '经验不限' == require[2]:  # 添加学历
+                res.append(0)
+            elif '应届生' == require[2]:
+                res.append(1)
+            elif '1年以内' == require[2]:
+                res.append(2)
+            elif '1-3年' == require[2]:
+                res.append(3)
+            elif '3-5年' == require[2]:
+                res.append(4)
+            else:
+                res.append(5)
+            if '学历不限' == require[4]:  # 添加经验
+                res.append(0)
+            elif '大专' == require[4]:
+                res.append(2)
+            elif '本科' == require[4]:
+                res.append(3)
+            else:
+                res.append(1)
             info = n.find('div', 'company-text').find('p').contents
             res.append(info[0])  # 行业
             if 4 > len(info) > 2 and info[2].index('人') != 0:
                 res.append('无信息')  # 融资
-                res.append(info[2])  # 规模
+                pot = info[2].find('-')
+                if -1 == pot:
+                    res.append(10000)  # 规模
+                else:
+                    res.append(info[2][0:pot])  # 规模
             else:
                 res.append(info[2])  # 融资
-                res.append(info[4])  # 规模
+                pot = info[4].find('-')
+                if -1 == pot:
+                    res.append(10000)  # 规模
+                else:
+                    res.append(info[4][0:pot])  # 规模
             hr = n.find('div', 'info-publis').find('h3', 'name').contents
             res.append(hr[3] + '--' + hr[1])  # 发布者
             if n.find('div', 'info-publis').find('p').string[3:] == '昨天':  # 如果发布时间是 "昨天"，格式化为日期
@@ -86,6 +117,7 @@ def spider4boss(url, job, cookie, path, page_start):
             if soup2.find('div', 'job-sec') is None:
                 print('又被限制ip了')
                 return page_start
+            # res.append(soup2.find('div', 'job-detail').find('div', 'detail-op').find('p', 'gray').contents[2])  # hr状态
             job_sec = soup2.find('div', 'job-sec').find('div', 'text').contents
             exp = 0  # 初始为0 取到一个工作经验要求后置1
             # 将JD保存
@@ -116,6 +148,8 @@ def spider4boss(url, job, cookie, path, page_start):
             res.append(job_url)  # 岗位描述链接
             job_description = ' '.join(job_description)[33:-29]
             res.append(job_description)  # 岗位描述
+            res.append(now_time)  # 当前时间
+            res.append(soup2.find('div', 'location-address').string)  # 公司详细地址
             # 写入Excel
             for i in range(len(res)):
                 sheet.write(row, i, res[i])
@@ -180,14 +214,15 @@ def merge_excel(path, date=str(datetime.date.today())[5:]):
     workbook = xlwt.Workbook(encoding='utf-8')
     sheet = workbook.add_sheet('job_detail')
     # 表头写入第一行
-    head = ['职位名', '薪资', '公司名', '地点', '经验', '学历', '公司行业', '融资阶段', '公司人数', '发布人', '发布时间', '实际经验要求', '岗位网址', 'JD ']
+    head = ['id', 'job', 'salary', 'company', 'location', 'exp', 'education', 'industry', 'financing', 'scale', 'from',
+            'pub_time', 'real_exp', 'url', 'JD', 'search_time', 'address']
     for h in range(len(head)):
         sheet.write(0, h, head[h])
     row = 1
     # 写入职位数据
     for i in range(len(all_data)):
-        for j in range(len(head)):
-            sheet.write(row, j, all_data[i][j])
+        for j in range(len(head)-1):
+            sheet.write(row, j+1, all_data[i][j])
         row += 1
     # 保存Excel
     workbook.save(path + date + '_boss_job.xls')
@@ -196,7 +231,6 @@ def merge_excel(path, date=str(datetime.date.today())[5:]):
 
 if __name__ == "__main__":
     cookie = ''
-    url = 'https://www.zhipin.com/c101210100/b_%E6%BB%A8%E6%B1%9F%E5%8C%BA/'
     job = 'PHP'
     path = ''
     rec_spider()
