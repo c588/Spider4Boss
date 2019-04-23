@@ -6,6 +6,7 @@ import xlwt
 import random
 import datetime
 import os
+import json
 
 
 # url:域名+地级市+区/县级市，以 '/' 结尾，例：https://www.zhipin.com/c101210100/b_%E6%BB%A8%E6%B1%9F%E5%8C%BA/
@@ -21,7 +22,8 @@ def spider4boss(url, job, cookie, path, page_start):
     # 打开Excel表 定义sheet 定义表头
     workbook = xlwt.Workbook(encoding='utf-8')
     sheet = workbook.add_sheet('job_detail')
-    head = ['职位名', '薪资', '公司名', '地点', '经验', '学历', '公司行业', '融资阶段', '公司人数', '发布人', '发布时间', '实际经验要求', '岗位网址', 'JD ']
+    head = ['职位名', '薪资', '公司名', '地点', '经验', '学历', '公司行业', '融资阶段', '公司人数', '发布人',
+            '发布时间', '实际经验要求', '岗位网址', 'JD', '经度', '纬度']
     for h in range(len(head)):
         sheet.write(0, h, head[h])
     row = 1  # 第0行用来写表头
@@ -150,6 +152,9 @@ def spider4boss(url, job, cookie, path, page_start):
             res.append(job_description)  # 岗位描述
             res.append(now_time)  # 当前时间
             res.append(soup2.find('div', 'location-address').string)  # 公司详细地址
+            lng_lat = get_lng_lat(soup2.find('div', 'location-address').string)
+            res.append(lng_lat['longitude'])  # 保存经度
+            res.append(lng_lat['latitude'])  # 保存纬度
             # 写入Excel
             for i in range(len(res)):
                 sheet.write(row, i, res[i])
@@ -214,8 +219,8 @@ def merge_excel(path, date=str(datetime.date.today())[5:]):
     workbook = xlwt.Workbook(encoding='utf-8')
     sheet = workbook.add_sheet('job_detail')
     # 表头写入第一行
-    head = ['id', 'job', 'salary', 'company', 'location', 'exp', 'education', 'industry', 'financing', 'scale', 'from',
-            'pub_time', 'real_exp', 'url', 'JD', 'search_time', 'address']
+    head = ['id', 'job', 'salary', 'company', 'location', 'exp', 'education', 'industry', 'financing', 'scale', 'hr',
+            'pub_time', 'real_exp', 'url', 'JD', 'search_time', 'address', 'longitude', 'latitude']
     for h in range(len(head)):
         sheet.write(0, h, head[h])
     row = 1
@@ -229,9 +234,27 @@ def merge_excel(path, date=str(datetime.date.today())[5:]):
     print('合并excel成功')
 
 
+def get_lng_lat(address, stop=0):
+    ll_response = requests.get('https://restapi.amap.com/v3/geocode/geo?address='
+                               + address + '&output=json&key=cbb6acd4327b17ee38659d94ade357af')
+    ll_result = ll_response.text
+    if len(json.loads(ll_result)['geocodes']) == 0 and stop == 1:
+        return {'longitude': 0, 'latitude': 0}
+    elif len(json.loads(ll_result)['geocodes']) == 0 and stop == 0:
+        return get_lng_lat('杭州市' + address, 1)
+    lng_lat = json.loads(ll_result)['geocodes'][0]['location']  # 得到经纬度字符串 经度,纬度
+    pot = lng_lat.find(',')
+    if pot <= 0:
+        res = {'longitude': 0, 'latitude': 0}
+    else:
+        res = {'longitude': lng_lat[: pot], 'latitude': lng_lat[pot + 1:]}
+    return res
+
+
 if __name__ == "__main__":
     cookie = ''
+    url = 'https://www.zhipin.com/c101210100/b_%E6%BB%A8%E6%B1%9F%E5%8C%BA/'
     job = 'PHP'
-    path = ''
+    path = 'C:/Users/帅气的吴彦祖/Desktop/'
     rec_spider()
     merge_excel(path)
