@@ -160,9 +160,16 @@ def spider4boss(url, job, cookie, path, page_start, location):
             for i in range(len(res)):
                 sheet.write(row, i, res[i])
             row += 1
-            print(res)
+            # 打印简略的内容
+            print_num = list(range(0, 11))
+            print_num.append(15)
+            print_num.append(18)
+            print_content = []
+            for i in range(len(print_num)):
+                print_content.append(res[print_num[i]])
+            print(print_content)
             # quit()
-            time.sleep(random.randint(100, 500)/1000)
+            # time.sleep(random.randint(100, 500)/1000)
     # 保存Excel 例：04-25_滨江区_1_boss_job.xls
     workbook.save(path + str(datetime.date.today())[5:] + '_' + location
                   + '_' + str(int(page_start/3+1)) + '_boss_job.xls')
@@ -259,19 +266,18 @@ def get_lng_lat(address, stop=0):
 
 
 if __name__ == "__main__":
-    user_cookie = 'lastCity=101210100; _uab_collina=155391552146954821137608; __c=1554345926; __g=-;' \
-             ' __l=l=%2Fwww.zhipin.com%2F&r=; bannerClose_echo20190329=true; t=KP9jOqLS9hUCPH3h;' \
-             ' wt=KP9jOqLS9hUCPH3h; JSESSIONID="";' \
-             ' Hm_lvt_194df3105ad7148dcf2b98a91b5e727a=1553915521,1553915549,1554345926,1554796342;' \
-             ' __a=41924534.1553741237.1553915521.1554345926.64.3.48.64;' \
-             ' Hm_lpvt_194df3105ad7148dcf2b98a91b5e727a=1554947693'
+    # 参数说明
+    # user_cookie:用户登录后的个人cookie，必须，登录后才显示最新数据
+    # 登录后F12，选择Network，刷新后点击www.zhipin.com，右侧Request Headers中复制cookie项，通常以lastCity=开头
+    user_cookie = ''
+    # user_url:选择城市后将此处的"c101210100"替换为地级市代号，此处为杭州市代号
     user_url = 'https://www.zhipin.com/c101210100/b_'
+    # 需要搜索的岗位
     user_job = 'PHP'
-    user_location = '滨江区'
+    # Excel表存放的位置
     user_path = 'C:/Users/cjy/Desktop/'
-    # rec_spider(user_url, user_job, user_cookie, user_path, user_location)
-    # hz_districts = ['滨江区', '西湖区', '江干区', '余杭区', '萧山区', '拱墅区', '下城区', '上城区', '富阳区', '临安区', '桐庐县', '建德市', '淳安县', '临安县']
-    hz_districts = ['西湖区', '江干区', '余杭区', '萧山区', '拱墅区', '下城区', '上城区', '富阳区', '临安区', '桐庐县', '建德市', '淳安县', '临安县']
+    # 市辖区数组，
+    hz_districts = ['滨江区', '西湖区', '江干区', '余杭区', '萧山区', '拱墅区', '下城区', '上城区', '富阳区', '临安区']
     for i in range(len(hz_districts)):
         rec_spider(user_url, user_job, user_cookie, user_path, hz_districts[i])
     merge_excel(user_path)
