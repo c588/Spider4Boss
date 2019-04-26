@@ -1,6 +1,8 @@
 # Spider4Boss
 需要下载火狐浏览器和驱动文件geckodriver.exe<br>
 驱动文件放在Spider4Boss.py同一目录<br>
+运行完成后会在指定目录生成单个Excel文件<br>
+中途报错退出问题仍需解决，目前为手动ctrl C停止重新运行<br>
 <br>
 参数说明<br>
 user_cookie:用户登录后的个人cookie，必须，登录后才显示最新数据。
