@@ -249,8 +249,12 @@ def merge_excel(path, date=str(datetime.date.today())[5:]):
 
 # 调用高德web api获取地址的经纬度
 def get_lng_lat(address, stop=0):
+    # 防止地名过短匹配到外省的经纬度
+    add_address = address
+    if address[0:2] != '浙江' or address[0:2] != '杭州':
+        add_address = '浙江省' + address
     ll_response = requests.get('https://restapi.amap.com/v3/geocode/geo?address='
-                               + address + '&output=json&key=cbb6acd4327b17ee38659d94ade357af')
+                               + add_address + '&output=json&key=cbb6acd4327b17ee38659d94ade357af')
     ll_result = ll_response.text
     if len(json.loads(ll_result)['geocodes']) == 0 and stop == 1:
         return {'longitude': 0, 'latitude': 0}
@@ -269,14 +273,19 @@ if __name__ == "__main__":
     # 参数说明
     # user_cookie:用户登录后的个人cookie，必须，登录后才显示最新数据
     # 登录后F12，选择Network，刷新后点击www.zhipin.com，右侧Request Headers中复制cookie项，通常以lastCity=开头
-    user_cookie = ''
+    user_cookie = 'lastCity=101210100; _uab_collina=155391552146954821137608; __c=1554345926; __g=-;' \
+             ' __l=l=%2Fwww.zhipin.com%2F&r=; bannerClose_echo20190329=true; t=KP9jOqLS9hUCPH3h;' \
+             ' wt=KP9jOqLS9hUCPH3h; JSESSIONID="";' \
+             ' Hm_lvt_194df3105ad7148dcf2b98a91b5e727a=1553915521,1553915549,1554345926,1554796342;' \
+             ' __a=41924534.1553741237.1553915521.1554345926.64.3.48.64;' \
+             ' Hm_lpvt_194df3105ad7148dcf2b98a91b5e727a=1554947693'
     # user_url:选择城市后将此处的"c101210100"替换为地级市代号，此处为杭州市代号
     user_url = 'https://www.zhipin.com/c101210100/b_'
-    # 需要搜索的岗位
+    # user_job:需要搜索的岗位
     user_job = 'PHP'
-    # Excel表存放的位置
+    # user_path:Excel表存放的位置
     user_path = 'C:/Users/cjy/Desktop/'
-    # 市辖区数组，
+    # hz_districts:市辖区数组
     hz_districts = ['滨江区', '西湖区', '江干区', '余杭区', '萧山区', '拱墅区', '下城区', '上城区', '富阳区', '临安区']
     for i in range(len(hz_districts)):
         rec_spider(user_url, user_job, user_cookie, user_path, hz_districts[i])
