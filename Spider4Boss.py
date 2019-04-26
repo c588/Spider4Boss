@@ -166,7 +166,7 @@ def spider4boss(url, job, cookie, path, page_start, location):
                 print_content.append(res[print_num[i]])
             print(print_content)
             # quit()
-            # time.sleep(random.randint(100, 500)/1000)
+            time.sleep(random.randint(100, 300)/1000)
     # 保存Excel 例：04-25_滨江区_1_boss_job.xls
     workbook.save(path + str(datetime.date.today())[5:] + '_' + location
                   + '_' + str(int(page_start/3+1)) + '_boss_job.xls')
@@ -294,4 +294,6 @@ if __name__ == "__main__":
     hz_districts = ['滨江区', '西湖区', '江干区', '余杭区', '萧山区', '拱墅区', '下城区', '上城区', '富阳区', '临安区']
     for i in range(len(hz_districts)):
         rec_spider(user_url, user_job, user_cookie, user_path, hz_districts[i])
+        # 爬完一个区暂停一分钟
+        time.sleep(60)
     merge_excel(user_path, hz_districts)
