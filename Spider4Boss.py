@@ -9,10 +9,7 @@ import os
 import json
 
 
-# url:域名+地级市+区/县级市，以 '/' 结尾，例：https://www.zhipin.com/c101210100/b_%E6%BB%A8%E6%B1%9F%E5%8C%BA/
-# job:岗位，例 PHP
-# cookie:登录后的cookie，F12打开开发者模式，选择Network，点击Doc找到Request Headers下面的cookie，复制字符串
-# path:Excel文档保存的路径，以 '/' 结尾
+# 爬虫本体
 def spider4boss(url, job, cookie, path, page_start, location):
     # header头信息 模拟火狐浏览器，加上自己的 cookie
     headers = {
@@ -26,7 +23,7 @@ def spider4boss(url, job, cookie, path, page_start, location):
             '发布时间', '实际经验要求', '岗位网址', 'JD', '经度', '纬度', '区']
     for h in range(len(head)):
         sheet.write(0, h, head[h])
-    row = 1  # 第0行用来写表头
+    row = 1  # 第0行用来写表头，row变成1
     # 判断程序是否结束的标志位
     is_end = 0
     # 当前时间
@@ -202,7 +199,8 @@ def rec_spider(url, job, cookie, path, location, page=1):
         page += 3
         rec_spider(url, job, cookie, path, location, page)
     elif 200 > res > 0:
-        print('在第 ' + str(res) + ' 页需要进行人机验证')
+        # res --  1:爬1-3页被限制  2:4-6页  3:7-9页  4:第10页
+        print('在第 ' + str(res) + ' 次需要进行人机验证')
         # 调用验证方法进行验证
         verify_slider()
         # 继续爬取
@@ -211,12 +209,12 @@ def rec_spider(url, job, cookie, path, location, page=1):
         print('爬取完成')
 
 
-def merge_excel(path, date=str(datetime.date.today())[5:]):
+def merge_excel(path, districts, date=str(datetime.date.today())[5:]):
     # 先读取所有Excel表
     all_data = list()
-    all_district = ['滨江区', '西湖区', '江干区', '余杭区', '萧山区', '拱墅区', '下城区', '上城区', '富阳区', '临安区', '桐庐县', '建德市', '淳安县', '临安县']
+    all_district = districts
     for k in range(len(all_district)):  # 遍历所有市辖区
-        for i in range(1, 5):  # 每个市辖区最多4个Excel文件（10页/3页每个）
+        for i in range(1, 4):  # 每个市辖区最多4个Excel文件（10页/3页每个）
             file_path = path + date + '_' + all_district[k] + '_' + str(i) + '_boss_job.xls'
             if os.path.exists(file_path):
                 data = xlrd.open_workbook(file_path)  # 打开Excel
@@ -228,12 +226,16 @@ def merge_excel(path, date=str(datetime.date.today())[5:]):
             else:
                 break
     print(len(all_data))
+    # ↓这里连接数据库并将数据写入
+    pass
+    # ↑这里连接数据库并将数据写入
+    print('数据写入数据库成功')
     # 将数据输入到总表
     workbook = xlwt.Workbook(encoding='utf-8')
     sheet = workbook.add_sheet('job_detail')
     # 表头写入第一行
     head = ['id', 'job', 'salary', 'company', 'location', 'exp', 'education', 'industry', 'financing', 'scale', 'hr',
-            'pub_time', 'real_exp', 'url', 'JD', 'search_time', 'address', 'longitude', 'latitude', 'cg_district']
+            'pub_time', 'real_exp', 'url', 'jd', 'search_time', 'address', 'longitude', 'latitude', 'cg_district']
     for h in range(len(head)):
         sheet.write(0, h, head[h])
     row = 1
@@ -256,10 +258,10 @@ def get_lng_lat(address, stop=0):
     ll_response = requests.get('https://restapi.amap.com/v3/geocode/geo?address='
                                + add_address + '&output=json&key=cbb6acd4327b17ee38659d94ade357af')
     ll_result = ll_response.text
-    if len(json.loads(ll_result)['geocodes']) == 0 and stop == 1:
-        return {'longitude': 0, 'latitude': 0}
-    elif len(json.loads(ll_result)['geocodes']) == 0 and stop == 0:
-        return get_lng_lat('杭州市' + address, 1)
+    # if len(json.loads(ll_result)['geocodes']) == 0 and stop == 1:
+    #     return {'longitude': 0, 'latitude': 0}
+    # elif len(json.loads(ll_result)['geocodes']) == 0 and stop == 0:
+    #     return get_lng_lat('杭州市' + address, 1)
     lng_lat = json.loads(ll_result)['geocodes'][0]['location']  # 得到经纬度字符串 经度,纬度
     pot = lng_lat.find(',')
     if pot <= 0:
@@ -270,18 +272,26 @@ def get_lng_lat(address, stop=0):
 
 
 if __name__ == "__main__":
+    cities_code = {'北京': '101010100', '上海': '101020100', '广州': '101280100', '深圳': '101280600',
+                   '杭州': '101210100', '宁波': '101210400', '金华': '101210900', '南京': '101190100',
+                   '苏州': '101190400', '扬州': '101190600', '武汉': '101200100', '重庆': '101040100',
+                   '成都': '101270100'}
     # 参数说明
     # user_cookie:用户登录后的个人cookie，必须，登录后才显示最新数据
     # 登录后F12，选择Network，刷新后点击www.zhipin.com，右侧Request Headers中复制cookie项，通常以lastCity=开头
-    user_cookie = ''
-    # user_url:选择城市后将此处的"c101210100"替换为地级市代号，此处为杭州市代号
-    user_url = 'https://www.zhipin.com/c101210100/b_'
+    user_cookie = 'lastCity=101210100; __g=-; Hm_lvt_194df3105ad7148dcf2b98a91b5e727a=1554724086; _uab_coll' \
+                  'ina=155472408567622428737139; __c=1554724089; __l=r=https%3A%2F%2Fwww.zhipin.com%2F&l=%2' \
+                  'Flogin.zhipin.com%2F%3Fka%3Dheader-login; t=KP9jOqLS9hUCPH3h; wt=KP9jOqLS9hUCPH3h; JSESS' \
+                  'IONID=""; Hm_lpvt_194df3105ad7148dcf2b98a91b5e727a=1554729849; __a=96537140.1554724056.1' \
+                  '554724056.1554724089.46.2.45.46'
+    # user_url:选择城市后将此处的"杭州"替换为所需地级市
+    user_url = 'https://www.zhipin.com/c' + cities_code['杭州'] + '/b_'
     # user_job:需要搜索的岗位
     user_job = 'PHP'
-    # user_path:Excel表存放的位置
-    user_path = 'C:/Users/cjy/Desktop/'
+    # user_path:Excel表存放的位置，以 / 结尾
+    user_path = 'C:/Users/帅气的吴彦祖/Desktop/'
     # hz_districts:市辖区数组
     hz_districts = ['滨江区', '西湖区', '江干区', '余杭区', '萧山区', '拱墅区', '下城区', '上城区', '富阳区', '临安区']
     for i in range(len(hz_districts)):
         rec_spider(user_url, user_job, user_cookie, user_path, hz_districts[i])
-    merge_excel(user_path)
+    merge_excel(user_path, hz_districts)
