@@ -273,7 +273,12 @@ if __name__ == "__main__":
     # 参数说明
     # user_cookie:用户登录后的个人cookie，必须，登录后才显示最新数据
     # 登录后F12，选择Network，刷新后点击www.zhipin.com，右侧Request Headers中复制cookie项，通常以lastCity=开头
-    user_cookie = ''
+    user_cookie = 'lastCity=101210100; _uab_collina=155391552146954821137608; __c=1554345926; __g=-;' \
+             ' __l=l=%2Fwww.zhipin.com%2F&r=; bannerClose_echo20190329=true; t=KP9jOqLS9hUCPH3h;' \
+             ' wt=KP9jOqLS9hUCPH3h; JSESSIONID="";' \
+             ' Hm_lvt_194df3105ad7148dcf2b98a91b5e727a=1553915521,1553915549,1554345926,1554796342;' \
+             ' __a=41924534.1553741237.1553915521.1554345926.64.3.48.64;' \
+             ' Hm_lpvt_194df3105ad7148dcf2b98a91b5e727a=1554947693'
     # user_url:选择城市后将此处的"c101210100"替换为地级市代号，此处为杭州市代号
     user_url = 'https://www.zhipin.com/c101210100/b_'
     # user_job:需要搜索的岗位
