@@ -290,7 +290,7 @@ if __name__ == "__main__":
     # user_job:需要搜索的岗位
     user_job = 'PHP'
     # user_path:Excel表存放的位置，以 / 结尾
-    user_path = 'C:/Users/cjy/Desktop/'
+    user_path = 'C:/Users/帅气的吴彦祖/Desktop/'
     # hz_districts:市辖区数组
     hz_districts = ['滨江区', '西湖区', '江干区', '余杭区', '萧山区', '拱墅区', '下城区', '上城区', '富阳区', '临安区']
     # hz_districts = ['西湖区', '江干区', '余杭区', '萧山区', '拱墅区', '下城区', '上城区', '富阳区', '临安区']
