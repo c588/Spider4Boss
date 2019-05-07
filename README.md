@@ -1,5 +1,5 @@
 # Spider4Boss
-# boss开始封ip，不建议继续爬取
+**`boss开始封ip，不建议继续爬取`**
 需要下载火狐浏览器和驱动文件geckodriver.exe<br>
 驱动文件放在Spider4Boss.py同一目录<br>
 运行完成后会在指定目录生成单个Excel文件<br>
