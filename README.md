@@ -1,4 +1,5 @@
 # Spider4Boss
+**`用爬虫配置了代理池，免费的ip效率很差，建议还是别爬boss了，吃相太难看`**  
 **`boss开始封ip，不建议继续爬取`**  
 需要下载火狐浏览器和驱动文件geckodriver.exe<br>
 驱动文件放在Spider4Boss.py同一目录<br>
